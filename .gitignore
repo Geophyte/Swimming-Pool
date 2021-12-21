@@ -1,3 +1,9 @@
+# Pytest files
+.pytest_cache/
+
+# Visual studio files
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 */__pycache__/

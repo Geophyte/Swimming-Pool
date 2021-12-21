@@ -1,0 +1,31 @@
+{
+    "client_age":
+    {
+        "child": 5,
+        "student": 8,
+        "normal": 16,
+        "senior": 8
+    },
+    "client_type":
+    {
+        "private_client": 1,
+        "swimming_school": 0.25
+    },
+    "day_of_entry":
+    {
+        "Monday": 1,
+        "Tuesday": 1,
+        "Wednesday": 1,
+        "Thurstday": 1,
+        "Friday": 1.25,
+        "Saturday": 1.25,
+        "Sunday": 1.25
+    },
+    "time_of_entry":
+    {
+        "morning": 0.75,
+        "afternoon": 1.25,
+        "evening": 1
+    },
+    "lane_price": 20
+}

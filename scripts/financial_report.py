@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 
-class day_report:
+class Day_report:
     def __init__(self, report_day: date = date.today()) -> None:
         self._report_date = report_day
         pass
@@ -28,5 +28,5 @@ class day_report:
 
 
 if __name__ == "__main__":
-    a = day_report()
+    a = Day_report()
     a.update_report()
