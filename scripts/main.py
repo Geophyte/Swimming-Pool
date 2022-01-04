@@ -1,4 +1,4 @@
-from schedule import Schedule
+from scripts._schedule import Schedule
 from financial_report import FinancialReport
 from datetime import datetime as dt
 

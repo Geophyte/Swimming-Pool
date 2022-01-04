@@ -9,28 +9,30 @@ import errno
 
 class PriceList:
     def __init__(self) -> None:
-        # Wczytaj cennik z ../data/price_list.json
-        price_list_rel_path = "../data/price_list.json"
-        price_list_abs_path = Path(__file__).parent / price_list_rel_path
+        # Wczytaj cennik z ../data/info.json
+        info_rel_path = "../data/info.json"
+        info_abs_path = Path(__file__).parent / info_rel_path
 
-        with open(price_list_abs_path, 'r') as price_list_file:
-            p_list = json.load(price_list_file)
+        with open(info_abs_path, 'r') as info_file:
+            info = json.load(info_file)
 
             # Cena podstawowa zależy od wieku
-            self._client_age = p_list['client_age']
+            self._client_age = info['PriceList']['client_age']
 
             # Współczynniki ceny zależą od dnia, godz, itd.
-            self._day_of_entry = p_list['day_of_entry']
-            self._time_of_entry = p_list['time_of_entry']
+            self._day_of_entry = info['PriceList']['day_of_entry']
+            self._time_of_entry = info['PriceList']['time_of_entry']
 
             # Cena podstawowa wynajmu toru
-            self._lane_price = p_list['lane_price']
+            self._lane_price = info['PriceList']['lane_price']
 
     # Zwraca współczynnik dla przedziału czasu
     def _get_time_factor(self, date: datetime) -> float:
         t = date.time()
         for interval in self._time_of_entry:
-            if time(interval['begin'], 0) <= t.hour and t.hour < time(interval['end'], 0):
+            begin = time(interval['begin'], 0)
+            end = time(interval['end'], 0)
+            if begin <= t and t <= end:
                 return interval['factor']
 
     # Zwraca koszt biletu
@@ -84,7 +86,7 @@ class FinancialReport:
 
     def _update_report(self, report: dict, date: dt = dt.now()) -> None:
         with open_report('w', date) as schedule_file:
-            json.dump(report, schedule_file)
+            json.dump(report, schedule_file, indent=4)
 
     def _read_report(self, date: dt = dt.now()) -> dict:
         with open_report('r', date) as schedule_file:

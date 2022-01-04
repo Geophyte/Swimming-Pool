@@ -1,0 +1,52 @@
+{
+    "NUMBER_OF_LANES": 10,
+    "OpeningHours":
+    {
+        "Monday":       [8, 20],
+        "Tuesday":      [8, 20],
+        "Wednesday":    [8, 20],
+        "Thursday":     [8, 20],
+        "Friday":       [9, 18],
+        "Saturday":     [9, 18],
+        "Sunday":       [9, 18]
+    },
+    "PriceList":
+    {
+        "client_age":
+        {
+            "child": 5,
+            "student": 8,
+            "normal": 16,
+            "senior": 8
+        },
+        "lane_price": 20,
+        "day_of_entry":
+        {
+            "Monday": 1,
+            "Tuesday": 1,
+            "Wednesday": 1,
+            "Thurstday": 1,
+            "Friday": 1.25,
+            "Saturday": 1.25,
+            "Sunday": 1.25
+        },
+        "time_of_entry":
+        [
+            {
+                "begin": 0,
+                "end": 12,
+                "factor": 0.75
+            },
+            {
+                "begin": 12,
+                "end": 18,
+                "factor": 1.25
+            },
+            {
+                "begin": 18,
+                "end": 23,
+                "factor": 1
+            }
+        ]
+    }
+}
