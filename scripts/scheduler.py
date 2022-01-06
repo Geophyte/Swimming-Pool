@@ -4,7 +4,6 @@ from typing import TextIO
 import os
 import errno
 import json
-import calendar
 import math
 
 
@@ -80,7 +79,6 @@ def open_schedule(mode: str, date: dt) -> TextIO:
 
 
 class Scheduler:
-    # Inicjalizuje klasę Schedule,
     def __init__(self) -> None:
         self._opening_hours = OpeningHours()
 
@@ -104,9 +102,9 @@ class Scheduler:
     def _read_schedule(self, date: dt) -> dict:
         with open_schedule('r', date) as schedule_file:
             try:
-                temp = json.load(schedule_file)
-                temp = {int(k): _ for k, _ in temp.items()}
-                return temp
+                schedule = json.load(schedule_file)
+                schedule = {int(k): _ for k, _ in schedule.items()}
+                return schedule
             except json.JSONDecodeError:
                 return self._init_month(date)
 
@@ -114,16 +112,16 @@ class Scheduler:
     # w godzinach otwarcia na maksimum dostępnych biletów
     def _init_month(self, date: dt) -> dict:
         start_date = dt(date.year, date.month, 1)
-        day_count = calendar.monthrange(date.year, date.month)[1]
+        date = start_date
 
         month_schedule = dict()
-        for n in range(1, day_count + 1):
-            max_tickets = self._opening_hours.get_opening_hours(start_date)
+        while date.month == start_date.month:
+            max_tickets = self._opening_hours.get_opening_hours(date)
             max_lanes = [x * self._MAX_LANES for x in max_tickets]
             max_tickets = [x * self._TICKETS for x in max_tickets]
-            month_schedule[n] = list(zip(max_tickets, max_lanes))
-            month_schedule[n] = [list(x) for x in month_schedule[n]]
-            start_date += timedelta(days=1)
+            month_schedule[date.day] = list(zip(max_tickets, max_lanes))
+            month_schedule[date.day] = [list(x) for x in month_schedule[date.day]]
+            date += timedelta(days=1)
 
         return month_schedule
 
@@ -181,7 +179,7 @@ class Scheduler:
         return self.find_next_date(ticket)
 
     # Wypisuje pozostałe bilety / tory w określonym dniu
-    def print_day_schedule(self, date: dt) -> str:
+    def print_day_schedule(self, date: dt) -> None:
         date = ticket['date']
         schedule = self._read_schedule(date)
 

@@ -1,18 +1,15 @@
-from scripts._schedule import Schedule
-from financial_report import FinancialReport
+from scripts.scheduler import Scheduler
+from scripts.accountant import Accountant
 from datetime import datetime as dt
 
-
-NUM_OF_LANES = 10
-NUM_OF_TICEKTS = NUM_OF_LANES * 5
 
 menue_options = ['Kup bilet', 'Wyjście']
 date_options = ['Najbliższa godzina', 'Konkretna data']
 ticket_age = ['Dziecko', 'Student', 'Normalny', 'Senior']
 ticket_type = ['Klient indywidualny', 'Wynajęcie toru']
 
-schedule = Schedule(NUM_OF_TICEKTS)
-report = FinancialReport()
+schedule = Scheduler()
+report = Accountant()
 
 
 def clear() -> None:

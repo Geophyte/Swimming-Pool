@@ -1,4 +1,4 @@
-from scripts.financial_report import PriceList
+from scripts.accountant import PriceList
 from datetime import datetime as dt
 
 

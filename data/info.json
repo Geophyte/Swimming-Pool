@@ -1,4 +1,5 @@
 {
+    "NAME": "Swimming pool",
     "NUMBER_OF_LANES": 10,
     "OpeningHours":
     {
@@ -14,9 +15,9 @@
     {
         "client_age":
         {
-            "child": 5,
+            "child": 4,
             "student": 8,
-            "normal": 16,
+            "normal": 12,
             "senior": 8
         },
         "lane_price": 20,
@@ -33,18 +34,15 @@
         "time_of_entry":
         [
             {
-                "begin": 0,
-                "end": 12,
+                "hours": [0, 12],
                 "factor": 0.75
             },
             {
-                "begin": 12,
-                "end": 18,
+                "hours": [12, 18],
                 "factor": 1.25
             },
             {
-                "begin": 18,
-                "end": 23,
+                "hours": [18, 24],
                 "factor": 1
             }
         ]

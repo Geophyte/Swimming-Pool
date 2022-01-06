@@ -1,4 +1,4 @@
-from datetime import datetime as dt, time
+from datetime import datetime as dt, time, timedelta
 from pathlib import Path
 from typing import TextIO
 from datetime import datetime
@@ -30,8 +30,8 @@ class PriceList:
     def _get_time_factor(self, date: datetime) -> float:
         t = date.time()
         for interval in self._time_of_entry:
-            begin = time(interval['begin'], 0)
-            end = time(interval['end'], 0)
+            begin = time(interval['hours'][0], 0)
+            end = time(interval['hours'][1], 0)
             if begin <= t and t <= end:
                 return interval['factor']
 
@@ -52,7 +52,7 @@ class PriceList:
 
 
 # Zwraca ścieżkę bezwzględną do pliku z raportem finansowym
-def get_report_path(date: dt = dt.now()) -> str:
+def get_report_path(date: dt) -> str:
     year = date.year
     month = date.strftime('%B').lower()
 
@@ -62,7 +62,7 @@ def get_report_path(date: dt = dt.now()) -> str:
 
 # Działa jak 'open' przy okazji tworząc plik jeśli nie istnieje,
 # otwiera go używając daty zamiast ścieżki
-def open_report(date: dt = dt.now()) -> TextIO:
+def open_report(mode: str, date: dt) -> TextIO:
     report_abs_path = get_report_path(date)
 
     # Stwórz foldery jeśli nie istnieją
@@ -77,44 +77,83 @@ def open_report(date: dt = dt.now()) -> TextIO:
     if not os.path.isfile(report_abs_path):
         open(report_abs_path, 'a').close()
 
-    return open(report_abs_path, 'r+')
+    return open(report_abs_path, mode)
 
 
-class FinancialReport:
+class Accountant:
     def __init__(self) -> None:
         self._price_list = PriceList()
 
-    def _update_report(self, report: dict, date: dt = dt.now()) -> None:
+    # Aktualizuje plik z raportem na podstawie słownika 'report'
+    def _update_report(self, report: dict, date: dt) -> None:
         with open_report('w', date) as schedule_file:
             json.dump(report, schedule_file, indent=4)
 
-    def _read_report(self, date: dt = dt.now()) -> dict:
+    # Wczytuje słownik z raportu, jeśli jest pusty inicjalizuje cały miesiąc
+    def _read_report(self, date: dt) -> dict:
         with open_report('r', date) as schedule_file:
             try:
-                return json.load(schedule_file)
+                report = json.load(schedule_file)
+                report = {int(k): _ for k, _ in report.items()}
+                return report
             except json.JSONDecodeError:
-                temp = {
-                    'lanes': 0,
-                    'lane_income': 0,
-                    'tickets': 0,
-                    'ticket_income': 0,
-                    'sum': 0
-                }
-                return temp
+                return self._init_month(date)
 
+    # Inicjalizuje raporty finansowe na cały miesiąc
+    def _init_month(self, date: dt) -> dict:
+        start_date = dt(date.year, date.month, 1)
+        date = start_date
+
+        month_report = dict()
+        while date.month == start_date.month:
+            month_report[date.day] = {
+                'lanes': 0,
+                'lane_income': 0,
+                'tickets': 0,
+                'ticket_income': 0,
+                'sum': 0
+            }
+            date += timedelta(days=1)
+        return month_report
+
+    # Rejestruje tranzakcje w raporcie na daną datę
     def regsiter_transaction(self, ticket: dict) -> float:
-        report = self._read_report(ticket['date'])
+        date = ticket['date']
+        report = self._read_report(date)
 
         if ticket['type'] == 'private_client':
-            report['tickets'] += 1
-            price = self._price_list.ticket_price(ticket['age'], ticket['date'])
-            report['ticket_income'] += price
+            report[date.day]['tickets'] += 1
+            price = self._price_list.ticket_price(ticket['age'], date)
+            report[date.day]['ticket_income'] += price
         else:
-            report['lanes'] += 1
-            price = self._price_list.lane_price(ticket['date'])
-            report['lane_income'] += price
-            
-        report['sum'] += price
-        self._update_report(report, ticket['date'])
+            report[date.day]['lanes'] += 1
+            price = self._price_list.lane_price(date)
+            report[date.day]['lane_income'] += price
+
+        report[date.day]['sum'] += price
+        self._update_report(report, date)
 
         return price
+
+    # Wypisuje raport z podanego dnia
+    def print_report(self, date: dt) -> None:
+        date = ticket['date']
+        report = self._read_report(date)
+
+        print(date)
+        for key in report[date.day]:
+            print(f'    {key}: {report[date.day][key]}')
+
+
+if __name__ == '__main__':
+    accountant = Accountant()
+    date = dt(1984, 12, 1, 10)
+
+    ticket = {
+        'age': 'normal',
+        'type': 'private_lient',
+        'date': date
+    }
+
+    print(accountant.regsiter_transaction(ticket))
+    accountant.print_report(date)
