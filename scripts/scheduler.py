@@ -19,13 +19,15 @@ class OpeningHours:
 
         # Przekonweruj wczytany słownik liczb na słownik klas 'time'
         for day in info["OpeningHours"]:
-            info["OpeningHours"][day][0] = time(info["OpeningHours"][day][0], 0)
-            info["OpeningHours"][day][1] = time(info["OpeningHours"][day][1], 0)
+            opening_hour = time(info["OpeningHours"][day][0], 0)
+            closing_hour = time(info["OpeningHours"][day][1], 0)
+            info["OpeningHours"][day][0] = opening_hour
+            info["OpeningHours"][day][1] = closing_hour
         self._opening_hours = info["OpeningHours"]
 
     # Zwraca prawdę jeśli podana data znajduje się podczas godzin otwarcia
     # pływalni
-    def is_open(self, date: dt = dt.now()) -> bool:
+    def is_open(self, date: dt) -> bool:
         day_of_week = date.strftime('%A')
         open_time = self._opening_hours[day_of_week][0]
         close_time = self._opening_hours[day_of_week][1]
@@ -35,21 +37,21 @@ class OpeningHours:
         return False
 
     # Zwraca listę 24 elementową w której każy element odpowiada
-    # godzinie [1-24] i wypełnia ją jedynkami w przedziale od
+    # godzinie [0-23] i wypełnia ją jedynkami w przedziale od
     # godzina_otwarcia (włącznie) do godzina zamknięcia (wyłącznie)
-    def get_opening_hours(self, date: dt = dt.now()) -> list:
+    def get_opening_hours(self, date: dt) -> list:
         day_of_week = date.strftime('%A')
         open_time = self._opening_hours[day_of_week][0]
         close_time = self._opening_hours[day_of_week][1]
 
         result = [0] * 24
         for i in range(open_time.hour, close_time.hour):
-            result[i] = 1
+            result[i + 1] = 1
         return result
 
 
 # Zwraca ścieżkę bezwzględną do pliku z terminarzem
-def get_schedule_path(date: dt = dt.now()) -> str:
+def get_schedule_path(date: dt) -> str:
     year = date.year
     month = date.strftime('%B').lower()
 
@@ -59,7 +61,7 @@ def get_schedule_path(date: dt = dt.now()) -> str:
 
 # Działa jak 'open' przy okazji tworząc plik jeśli nie istnieje,
 # otwiera go używając daty zamiast ścieżki
-def open_schedule(mode: str, date: dt = dt.now()) -> TextIO:
+def open_schedule(mode: str, date: dt) -> TextIO:
     schedule_abs_path = get_schedule_path(date)
 
     # Stwórz foldery jeśli nie istnieją
@@ -77,7 +79,7 @@ def open_schedule(mode: str, date: dt = dt.now()) -> TextIO:
     return open(schedule_abs_path, mode)
 
 
-class Schedule:
+class Scheduler:
     # Inicjalizuje klasę Schedule,
     def __init__(self) -> None:
         self._opening_hours = OpeningHours()
@@ -94,12 +96,12 @@ class Schedule:
         self._TICKETS = self._LANES * 5
 
     # Aktualizuje plik z terminarzem na podstawie słownika 'schedule'
-    def _update_schedule(self, schedule: dict, date: dt = dt.now()) -> None:
+    def _update_schedule(self, schedule: dict, date: dt) -> None:
         with open_schedule('w', date) as schedule_file:
-            json.dump(schedule, schedule_file, indent=4)
+            json.dump(schedule, schedule_file)
 
     # Wczytuje słownik z terminarza, jeśli jest pusty inicjalizuje cały miesiąc
-    def _read_schedule(self, date: dt = dt.now()) -> dict:
+    def _read_schedule(self, date: dt) -> dict:
         with open_schedule('r', date) as schedule_file:
             try:
                 temp = json.load(schedule_file)
@@ -110,20 +112,23 @@ class Schedule:
 
     # Inicjalizuje miesiąc ustawiając każdą godzinę
     # w godzinach otwarcia na maksimum dostępnych biletów
-    def _init_month(self, date: dt = dt.now()) -> dict:
+    def _init_month(self, date: dt) -> dict:
         start_date = dt(date.year, date.month, 1)
         day_count = calendar.monthrange(date.year, date.month)[1]
 
         month_schedule = dict()
         for n in range(1, day_count + 1):
-            temp = self._opening_hours.get_opening_hours(start_date)
-            temp = [x * self._TICKETS for x in temp]
-            month_schedule[n] = zip(temp, [0] * 24)
+            max_tickets = self._opening_hours.get_opening_hours(start_date)
+            max_lanes = [x * self._MAX_LANES for x in max_tickets]
+            max_tickets = [x * self._TICKETS for x in max_tickets]
+            month_schedule[n] = list(zip(max_tickets, max_lanes))
+            month_schedule[n] = [list(x) for x in month_schedule[n]]
             start_date += timedelta(days=1)
 
         return month_schedule
 
-    def _validate_reservation(self, schedule: dict, ticket: dict) -> bool:
+    # Zwraca True jeśli można zarezerwować biet na podaną godzinę
+    def _is_valid_reservation(self, schedule: dict, ticket: dict) -> bool:
         date = ticket['date']
         if ticket['type'] == 'private_client':
             if schedule[date.day][date.hour][0] - 1 < 0:
@@ -132,7 +137,7 @@ class Schedule:
         else:
             if schedule[date.day][date.hour][0] - 5 < 0:
                 return False
-            if schedule[date.day][date.hour][1] + 1 > self._MAX_LANES:
+            if schedule[date.day][date.hour][1] - 1 < 0:
                 return False
             return True
 
@@ -143,12 +148,12 @@ class Schedule:
         date = ticket['date']
         schedule = self._read_schedule(date)
 
-        if self._validate_reservation(schedule, ticket):
+        if self._is_valid_reservation(schedule, ticket):
             if ticket['type'] == 'private_client':
                 schedule[date.day][date.hour][0] -= 1
             else:
                 schedule[date.day][date.hour][0] -= 5
-                schedule[date.day][date.hour][1] += 1
+                schedule[date.day][date.hour][1] -= 1
             self._update_schedule(schedule, date)
             return True
         return False
@@ -161,15 +166,41 @@ class Schedule:
         # Szuka terminu w tym miesiącu po podanej dacie
         i = date
         while i.month == date.month:
-            if self._validate_reservation(schedule, ticket):
+            ticket['date'] = i
+            if self._is_valid_reservation(schedule, ticket):
                 return i
             i += timedelta(hours=1)
 
         # Jeśli nie ma dostępnego terminu w tym miesiącu
         # zaczyna szukać w następnym
         if date.month + 1 > 12:
-            ticket['date'] = dt(date.year + 1, 1, 1, 1, 0)
+            ticket['date'] = dt(date.year + 1, 1, 1)
         else:
-            ticket['date'] = dt(date.year, date.month + 1, 1, 1, 0)
+            ticket['date'] = dt(date.year, date.month + 1, 1)
 
         return self.find_next_date(ticket)
+
+    # Wypisuje pozostałe bilety / tory w określonym dniu
+    def print_day_schedule(self, date: dt) -> str:
+        date = ticket['date']
+        schedule = self._read_schedule(date)
+
+        print(f'{date}:')
+        for i, left in enumerate(schedule[date.day]):
+            print(f'    {i}: {left}')
+
+
+if __name__ == '__main__':
+    scheduler = Scheduler()
+    date = dt(1984, 12, 1, 10, 0)
+
+    ticket = {
+        'type': 'private_client',
+        'date': date
+    }
+
+    if not scheduler.reserve_ticket(ticket):
+        next_date = scheduler.find_next_date(ticket)
+        ticket['date'] = next_date
+        scheduler.reserve_ticket(ticket)
+    scheduler.print_day_schedule(ticket['date'])

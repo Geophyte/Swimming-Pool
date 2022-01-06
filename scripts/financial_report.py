@@ -109,13 +109,12 @@ class FinancialReport:
             report['tickets'] += 1
             price = self._price_list.ticket_price(ticket['age'], ticket['date'])
             report['ticket_income'] += price
-            report['sum'] += price
         else:
             report['lanes'] += 1
             price = self._price_list.lane_price(ticket['date'])
             report['lane_income'] += price
-            report['sum'] += price
-
+            
+        report['sum'] += price
         self._update_report(report, ticket['date'])
 
         return price
