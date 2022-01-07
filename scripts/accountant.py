@@ -30,8 +30,12 @@ class PriceList:
     def _get_time_factor(self, date: datetime) -> float:
         t = date.time()
         for interval in self._time_of_entry:
+            # Wybierz początek i koniec przedziału czasowego
             begin = time(interval['hours'][0], 0)
             end = time(interval['hours'][1], 0)
+
+            # Sprawdź czy podany czas znajduje się w przedziale czasowym
+            # i zwróć współczynnik czasu jeśli tak
             if begin <= t and t <= end:
                 return interval['factor']
 
@@ -93,7 +97,9 @@ class Accountant:
     def _read_report(self, date: dt) -> dict:
         with open_report('r', date) as schedule_file:
             try:
+                # Wczytaj plik
                 report = json.load(schedule_file)
+                # Przekonwertuj klucze słownika z str na int
                 report = {int(k): _ for k, _ in report.items()}
                 return report
             except json.JSONDecodeError:
@@ -104,6 +110,7 @@ class Accountant:
         start_date = dt(date.year, date.month, 1)
         date = start_date
 
+        # Ustaw dla każdego dnia miesiąca wyzerowany raport
         month_report = dict()
         while date.month == start_date.month:
             month_report[date.day] = {
@@ -137,12 +144,14 @@ class Accountant:
 
     # Wypisuje raport z podanego dnia
     def print_report(self, date: dt) -> None:
-        date = ticket['date']
-        report = self._read_report(date)
+        report = self._read_report(date)[date.day]
 
-        print(date)
-        for key in report[date.day]:
-            print(f'    {key}: {report[date.day][key]}')
+        print(f"Raport z dnia {date.date()}:")
+        print(f"\tSprzedane bilety indywidualne: {report['tickets']}")
+        print(f"\tZarezerwowane tory: {report['lanes']}")
+        print(f"\tPrzychód z biletów: {report['ticket_income']}")
+        print(f"\tPrzychód z torów: {report['lane_income']}")
+        print(f"\tŁączny przychód: {report['sum']}")
 
 
 if __name__ == '__main__':

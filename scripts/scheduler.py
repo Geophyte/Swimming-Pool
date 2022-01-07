@@ -45,7 +45,7 @@ class OpeningHours:
 
         result = [0] * 24
         for i in range(open_time.hour, close_time.hour):
-            result[i + 1] = 1
+            result[i] = 1
         return result
 
 
@@ -89,6 +89,8 @@ class Scheduler:
         with open(info_abs_path, 'r') as info_file:
             info = json.load(info_file)
 
+        # Ustaw liczbę torów, max liczby torów do wynajęcia i
+        # max liczbę biletów możliwą do sprzedania
         self._LANES = info['NUMBER_OF_LANES']
         self._MAX_LANES = math.floor(self._LANES * 0.35)
         self._TICKETS = self._LANES * 5
@@ -102,7 +104,9 @@ class Scheduler:
     def _read_schedule(self, date: dt) -> dict:
         with open_schedule('r', date) as schedule_file:
             try:
+                # Wczytaj plik
                 schedule = json.load(schedule_file)
+                # Przekonwertuj klucze słownika z str na int
                 schedule = {int(k): _ for k, _ in schedule.items()}
                 return schedule
             except json.JSONDecodeError:
@@ -116,11 +120,22 @@ class Scheduler:
 
         month_schedule = dict()
         while date.month == start_date.month:
+            # Ustaw 24-elementową listę max_tickets by były wypełniona
+            # jedynkami w przedziale <godzina_otwarcia, godzina zamknięcia)
             max_tickets = self._opening_hours.get_opening_hours(date)
+
+            # Przemnóż każdy element max_lanes i max_tickets przez maksymalną
+            # liczbę dostępnych torów i miejsc do rezerwacji
             max_lanes = [x * self._MAX_LANES for x in max_tickets]
             max_tickets = [x * self._TICKETS for x in max_tickets]
+
+            # Ustaw terminarz na każdy dzień by był sklejeniem listy
+            # max_tickets i max_lanes, a następnie przekonwertuj na
+            # listę list
             month_schedule[date.day] = list(zip(max_tickets, max_lanes))
             month_schedule[date.day] = [list(x) for x in month_schedule[date.day]]
+
+            # inkrementuj datę o jeden dzień
             date += timedelta(days=1)
 
         return month_schedule
@@ -128,12 +143,13 @@ class Scheduler:
     # Zwraca True jeśli można zarezerwować biet na podaną godzinę
     def _is_valid_reservation(self, schedule: dict, ticket: dict) -> bool:
         date = ticket['date']
+
         if ticket['type'] == 'private_client':
             if schedule[date.day][date.hour][0] - 1 < 0:
                 return False
             return True
         else:
-            if schedule[date.day][date.hour][0] - 5 < 0:
+            if schedule[date.day][date.hour][0] - 5 < 0: # Czy to dobry warunek?
                 return False
             if schedule[date.day][date.hour][1] - 1 < 0:
                 return False
@@ -180,10 +196,9 @@ class Scheduler:
 
     # Wypisuje pozostałe bilety / tory w określonym dniu
     def print_day_schedule(self, date: dt) -> None:
-        date = ticket['date']
         schedule = self._read_schedule(date)
 
-        print(f'{date}:')
+        print(f'{date.date()}:')
         for i, left in enumerate(schedule[date.day]):
             print(f'    {i}: {left}')
 
