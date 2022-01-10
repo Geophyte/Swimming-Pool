@@ -8,9 +8,8 @@ import math
 
 
 class OpeningHours:
-    def __init__(self) -> None:
-        # Wczytaj godzinny otwarcia z ../data/info.json
-        info_rel_path = "../data/info.json"
+    def __init__(self, info_rel_path: str) -> None:
+        # Wczytaj godzinny otwarcia z 'info_rel_path'
         info_abs_path = Path(__file__).parent / info_rel_path
 
         with open(info_abs_path, 'r') as info_file:
@@ -79,11 +78,10 @@ def open_schedule(mode: str, date: dt) -> TextIO:
 
 
 class Scheduler:
-    def __init__(self) -> None:
-        self._opening_hours = OpeningHours()
+    def __init__(self, info_rel_path: str) -> None:
+        self._opening_hours = OpeningHours(info_rel_path)
 
-        # Wczytaj liczbe torów z ../data/info.json
-        info_rel_path = "../data/info.json"
+        # Wczytaj liczbe torów z 'info_rel_path'
         info_abs_path = Path(__file__).parent / info_rel_path
 
         with open(info_abs_path, 'r') as info_file:
@@ -204,7 +202,7 @@ class Scheduler:
 
 
 if __name__ == '__main__':
-    scheduler = Scheduler()
+    scheduler = Scheduler('../data/info.json')
     date = dt(1984, 12, 1, 10, 0)
 
     ticket = {

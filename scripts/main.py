@@ -17,8 +17,8 @@ ticket_option = [
 
 # Zmienne globalne
 ui = UI()
-accountant = Accountant()
-scheduler = Scheduler()
+accountant = Accountant('../data/info.json')
+scheduler = Scheduler('../data/info.json')
 
 
 # Pyta użytkownika o informacje związane z biletem.
@@ -54,8 +54,13 @@ def buy_ticket() -> None:
         if option == 0:
             ticket['date'] = next_date
             scheduler.reserve_ticket(ticket)
+            print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
+            input('Kliknji cokolwiek, aby kontynuować')
         else:
             return
+    else:
+        print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
+        input('Kliknji cokolwiek, aby kontynuować')
 
     # Zarejestruj tranzakcję
     accountant.regsiter_transaction(ticket)

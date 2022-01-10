@@ -7,7 +7,7 @@ def test_is_valid_reservation():
         1: [(1, 0), (0, 0), (5, 1), (20, 0)]
     }
 
-    s = Scheduler()
+    s = Scheduler('../data/info.json')
 
     ticket1 = {
         'type': 'private_client',

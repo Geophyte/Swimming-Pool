@@ -8,9 +8,8 @@ import errno
 
 
 class PriceList:
-    def __init__(self) -> None:
-        # Wczytaj cennik z ../data/info.json
-        info_rel_path = "../data/info.json"
+    def __init__(self, info_rel_path: str) -> None:
+        # Wczytaj cennik z 'info_rel_path'
         info_abs_path = Path(__file__).parent / info_rel_path
 
         with open(info_abs_path, 'r') as info_file:
@@ -85,8 +84,8 @@ def open_report(mode: str, date: dt) -> TextIO:
 
 
 class Accountant:
-    def __init__(self) -> None:
-        self._price_list = PriceList()
+    def __init__(self, info_rel_path: str) -> None:
+        self._price_list = PriceList(info_rel_path)
 
     # Aktualizuje plik z raportem na podstawie słownika 'report'
     def _update_report(self, report: dict, date: dt) -> None:
@@ -155,7 +154,7 @@ class Accountant:
 
 
 if __name__ == '__main__':
-    accountant = Accountant()
+    accountant = Accountant("../data/info.json")
     date = dt(1984, 12, 1, 10)
 
     ticket = {
