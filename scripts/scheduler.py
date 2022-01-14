@@ -23,17 +23,6 @@ class OpeningHours:
             info["OpeningHours"][day][1] = closing_hour
         self._opening_hours = info["OpeningHours"]
 
-    # Zwraca prawdę jeśli podana data znajduje się podczas godzin otwarcia
-    # pływalni
-    def is_open(self, date: dt) -> bool:
-        day_of_week = date.strftime('%A')
-        open_time = self._opening_hours[day_of_week][0]
-        close_time = self._opening_hours[day_of_week][1]
-
-        if open_time <= date.time() and date.time() <= close_time:
-            return True
-        return False
-
     # Zwraca listę 24 elementową w której każy element odpowiada
     # godzinie [0-23] i wypełnia ją jedynkami w przedziale od
     # godzina_otwarcia (włącznie) do godzina zamknięcia (wyłącznie)

@@ -1,10 +1,10 @@
 {
     "1": {
-        "lanes": 1,
-        "lane_income": 18.75,
+        "lanes": 2,
+        "lane_income": 37.5,
         "tickets": 0,
         "ticket_income": 0,
-        "sum": 18.75
+        "sum": 37.5
     },
     "2": {
         "lanes": 0,

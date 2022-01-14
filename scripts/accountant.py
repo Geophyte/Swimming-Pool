@@ -35,7 +35,7 @@ class PriceList:
 
             # Sprawdź czy podany czas znajduje się w przedziale czasowym
             # i zwróć współczynnik czasu jeśli tak
-            if begin <= t and t <= end:
+            if begin <= t and t < end:
                 return interval['factor']
 
     # Zwraca koszt biletu
