@@ -54,16 +54,14 @@ def buy_ticket() -> None:
         if option == 0:
             ticket['date'] = next_date
             scheduler.reserve_ticket(ticket)
-            print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
-            input('Kliknji Enter, aby kontynuować')
         else:
             return
-    else:
-        print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
-        input('Kliknji Enter, aby kontynuować')
 
     # Zarejestruj tranzakcję
-    accountant.regsiter_transaction(ticket)
+    price = accountant.regsiter_transaction(ticket)
+    print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
+    print(f"Cena: {price}")
+    input('Kliknji Enter, aby kontynuować')
 
 
 def main() -> None:
