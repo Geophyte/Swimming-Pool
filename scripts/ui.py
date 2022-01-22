@@ -30,7 +30,7 @@ class UI:
         for i, option in enumerate(options):
             print(f'{i}) {option}')
         option = int(input('Opcja: '))
-        if option >= len(options):
+        if 0 > option or option >= len(options):
             # self.clear()
             print('Podaj poprawną opcje')
             return self.input_option(options)
