@@ -122,7 +122,7 @@ class Accountant:
             date += timedelta(days=1)
         return month_report
 
-    # Rejestruje tranzakcje w raporcie na daną datę
+    # Rejestruje transakcje w raporcie na daną datę
     def regsiter_transaction(self, ticket: dict) -> float:
         date = ticket['date']
         report = self._read_report(date)

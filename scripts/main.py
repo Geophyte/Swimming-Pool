@@ -57,7 +57,7 @@ def buy_ticket() -> None:
         else:
             return
 
-    # Zarejestruj tranzakcję
+    # Zarejestruj transakcję
     price = accountant.regsiter_transaction(ticket)
     print(f"Pomyślnie zakupiono bilet na termin {ticket['date']}")
     print(f"Cena: {price}")
